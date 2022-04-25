@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 3162182666962212935}
   m_LocalRotation: {x: -0.6216795, y: -0.33691937, z: -0.33691937, w: 0.6216795}
   m_LocalPosition: {x: 0.8236313, y: 1.2799997, z: 8.089935}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -98,14 +98,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isAnimated: 1
   isRotating: 1
-  isFloating: 1
+  isFloating: 0
   isScaling: 1
   rotationAngle: {x: 0, y: 0, z: 10}
   rotationSpeed: 10
   floatSpeed: 0.04
   floatRate: 0.5
-  startScale: {x: 0.2, y: 0.2, z: 0.2}
-  endScale: {x: 1, y: 1, z: 1}
+  startScale: {x: 0.3, y: 0.3, z: 0.3}
+  endScale: {x: 0.4, y: 0.4, z: 0.4}
   scaleSpeed: 1
   scaleRate: 0.5
 --- !u!114 &2988243173884386595

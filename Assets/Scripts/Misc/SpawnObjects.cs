@@ -11,4 +11,10 @@ public class SpawnObjects : MonoBehaviour
     {
         Instantiate(collectableArray[Random.Range(0, 4)], transform.position, transform.rotation);
     }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(transform.position, 0.2f);
+    }
 }
