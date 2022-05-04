@@ -4,20 +4,21 @@ using UnityEngine;
 
 namespace VGP142.EnemyVision
 {
+
     public class TargetVision : MonoBehaviour
     {
         public bool visible = true;
 
-        private static List<TargetVision> targetList = new List<TargetVision>();
+        private static List<TargetVision> target_list = new List<TargetVision>();
 
         private void Awake()
         {
-            targetList.Add(this);
+            target_list.Add(this);
         }
 
         private void OnDestroy()
         {
-            targetList.Remove(this);
+            target_list.Remove(this);
         }
 
         public bool CanBeSeen()
@@ -27,7 +28,7 @@ namespace VGP142.EnemyVision
 
         public static List<TargetVision> GetAll()
         {
-            return targetList;
+            return target_list;
         }
     }
 

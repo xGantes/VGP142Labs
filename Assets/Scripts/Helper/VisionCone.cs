@@ -11,20 +11,20 @@ namespace VGP142.EnemyVision
         public EnemyVision target;
 
         [Header("Vision")]
-        public float visionAngle = 30f;
-        public float visionRange = 5f;
-        public float visionNearRange = 3f;
-        public LayerMask obstacleMask = ~(0);
-        public bool showTwoLevels = false;
+        public float vision_angle = 30f;
+        public float vision_range = 5f;
+        public float vision_near_range = 3f;
+        public LayerMask obstacle_mask = ~(0);
+        public bool show_two_levels = false;
 
         [Header("Material")]
-        public Material coneMaterial;
-        public Material coneFarMaterial;
-        public int sortOrder = 1;
+        public Material cone_material;
+        public Material cone_far_material;
+        public int sort_order = 1;
 
         [Header("Optimization")]
         public int precision = 60;
-        public float refreshRate = 0f;
+        public float refresh_rate = 0f;
 
         private MeshRenderer render;
         private MeshFilter mesh;
@@ -36,15 +36,15 @@ namespace VGP142.EnemyVision
         {
             render = gameObject.AddComponent<MeshRenderer>();
             mesh = gameObject.AddComponent<MeshFilter>();
-            render.sharedMaterial = coneMaterial;
+            render.sharedMaterial = cone_material;
             render.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             render.receiveShadows = false;
             render.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             render.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
             render.allowOcclusionWhenDynamic = false;
-            render.sortingOrder = sortOrder;
+            render.sortingOrder = sort_order;
 
-            if (showTwoLevels)
+            if (show_two_levels)
             {
                 GameObject far_cone = new GameObject("FarCone");
                 far_cone.transform.position = transform.position;
@@ -52,13 +52,13 @@ namespace VGP142.EnemyVision
 
                 render_far = far_cone.AddComponent<MeshRenderer>();
                 mesh_far = far_cone.AddComponent<MeshFilter>();
-                render_far.sharedMaterial = coneFarMaterial;
+                render_far.sharedMaterial = cone_far_material;
                 render_far.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 render_far.receiveShadows = false;
                 render_far.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 render_far.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
                 render_far.allowOcclusionWhenDynamic = false;
-                render.sortingOrder = sortOrder;
+                render.sortingOrder = sort_order;
             }
         }
 
@@ -66,7 +66,7 @@ namespace VGP142.EnemyVision
         {
             InitMesh(mesh, false);
 
-            if (showTwoLevels)
+            if (show_two_levels)
                 InitMesh(mesh_far, true);
         }
 
@@ -84,15 +84,15 @@ namespace VGP142.EnemyVision
                 uv.Add(Vector2.zero);
             }
 
-            int minmax = Mathf.RoundToInt(visionAngle / 2f);
+            int minmax = Mathf.RoundToInt(vision_angle / 2f);
 
             int tri_index = 0;
-            float step_jump = Mathf.Clamp(visionAngle / precision, 0.01f, minmax);
+            float step_jump = Mathf.Clamp(vision_angle / precision, 0.01f, minmax);
 
             for (float i = -minmax; i <= minmax; i += step_jump)
             {
                 float angle = (float)(i + 90f) * Mathf.Deg2Rad;
-                Vector3 dir = new Vector3(Mathf.Cos(angle) * visionRange, 0f, Mathf.Sin(angle) * visionRange);
+                Vector3 dir = new Vector3(Mathf.Cos(angle) * vision_range, 0f, Mathf.Sin(angle) * vision_range);
 
                 vertices.Add(dir);
                 normals.Add(Vector2.up);
@@ -146,18 +146,18 @@ namespace VGP142.EnemyVision
             transform.position = target.eye.transform.position;
             transform.rotation = target.transform.rotation;
 
-            if (timer > refreshRate)
+            if (timer > refresh_rate)
             {
                 timer = 0f;
 
-                float range = visionRange;
-                if (showTwoLevels)
-                    range = visionNearRange;
+                float range = vision_range;
+                if (show_two_levels)
+                    range = vision_near_range;
 
                 UpdateMainLevel(mesh, range);
 
-                if (showTwoLevels)
-                    UpdateFarLevel(mesh_far, visionNearRange, visionRange - visionNearRange);
+                if (show_two_levels)
+                    UpdateFarLevel(mesh_far, vision_near_range, vision_range - vision_near_range);
             }
         }
 
@@ -166,8 +166,8 @@ namespace VGP142.EnemyVision
             List<Vector3> vertices = new List<Vector3>();
             vertices.Add(new Vector3(0f, 0f, 0f));
 
-            int minmax = Mathf.RoundToInt(visionAngle / 2f);
-            float step_jump = Mathf.Clamp(visionAngle / precision, 0.01f, minmax);
+            int minmax = Mathf.RoundToInt(vision_angle / 2f);
+            float step_jump = Mathf.Clamp(vision_angle / precision, 0.01f, minmax);
             for (float i = -minmax; i <= minmax; i += step_jump)
             {
                 float angle = (float)(i + 90f) * Mathf.Deg2Rad;
@@ -176,7 +176,7 @@ namespace VGP142.EnemyVision
                 RaycastHit hit;
                 Vector3 pos_world = transform.TransformPoint(Vector3.zero);
                 Vector3 dir_world = transform.TransformDirection(dir.normalized);
-                bool ishit = Physics.Raycast(new Ray(pos_world, dir_world), out hit, range, obstacleMask.value);
+                bool ishit = Physics.Raycast(new Ray(pos_world, dir_world), out hit, range, obstacle_mask.value);
                 if (ishit)
                     dir = dir.normalized * hit.distance;
                 Debug.DrawRay(pos_world, dir_world * (ishit ? hit.distance : range));
@@ -192,8 +192,8 @@ namespace VGP142.EnemyVision
         {
             List<Vector3> vertices = new List<Vector3>();
 
-            int minmax = Mathf.RoundToInt(visionAngle / 2f);
-            float step_jump = Mathf.Clamp(visionAngle / precision, 0.01f, minmax);
+            int minmax = Mathf.RoundToInt(vision_angle / 2f);
+            float step_jump = Mathf.Clamp(vision_angle / precision, 0.01f, minmax);
             for (float i = -minmax; i <= minmax; i += step_jump)
             {
                 float angle = (float)(i + 90f) * Mathf.Deg2Rad;
@@ -202,7 +202,7 @@ namespace VGP142.EnemyVision
                 RaycastHit hit;
                 Vector3 pos_world = transform.TransformPoint(Vector3.zero);
                 Vector3 dir_world = transform.TransformDirection(dir.normalized);
-                bool ishit = Physics.Raycast(new Ray(pos_world, dir_world), out hit, range + offset, obstacleMask.value);
+                bool ishit = Physics.Raycast(new Ray(pos_world, dir_world), out hit, range + offset, obstacle_mask.value);
 
                 float tot_dist = ishit ? hit.distance : range + offset;
                 Vector3 dir1 = dir.normalized * offset;

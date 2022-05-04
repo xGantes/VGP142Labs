@@ -140,7 +140,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.12
+      value: 5.4
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.y
@@ -148,7 +148,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 12.23
+      value: 14.86
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalRotation.w
@@ -436,7 +436,8 @@ PrefabInstance:
       propertyPath: playerTransform
       value: 
       objectReference: {fileID: 1230845835}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1414633899951828379, guid: a87b6426c8be0c2488c671de9cbd77c2, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: a87b6426c8be0c2488c671de9cbd77c2, type: 3}
 --- !u!4 &700051398 stripped
 Transform:
@@ -1037,7 +1038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 12.23
+      value: 14.888
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1196,7 +1197,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8.12
+      value: 9.86
       objectReference: {fileID: 0}
     - target: {fileID: 8961246899224214546, guid: e1207b027adf93d4b9eb6f047f38d490, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1659,7 +1660,6 @@ GameObject:
   - component: {fileID: 1414633899951828380}
   - component: {fileID: 1414633899951828383}
   - component: {fileID: 1414633899951828382}
-  - component: {fileID: 1414633899951828379}
   m_Layer: 0
   m_Name: EnemyAgent
   m_TagString: Player
@@ -1667,26 +1667,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1414633899951828379
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1414633899951828378}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd6e6bb117906c143ada32c3dc5df82b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  meshColor: {r: 1, g: 0, b: 0, a: 0.09803922}
-  Interact:
-    serializedVersion: 2
-    m_Bits: 0
-  distance: 4.44
-  angle: 38.18
-  height: 1.5
-  scanFrequency: 30
 --- !u!195 &1414633899951828380
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -3069,6 +3049,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyAgentB
       objectReference: {fileID: 0}
+    - target: {fileID: 6078199453295326229, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
+      propertyPath: visionPrefab
+      value: 
+      objectReference: {fileID: 6058987190590874651, guid: c2dd9468b3ed19848b24edab002f137c, type: 3}
+    - target: {fileID: 6078199453295326230, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
+      propertyPath: patrolPath.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6078199453295326230, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
+      propertyPath: patrolPath.Array.data[0]
+      value: 
+      objectReference: {fileID: 1512823899}
+    - target: {fileID: 6078199453295326230, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
+      propertyPath: patrolPath.Array.data[1]
+      value: 
+      objectReference: {fileID: 846394585}
+    - target: {fileID: 6078199453295326230, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
+      propertyPath: patrolPath.Array.data[2]
+      value: 
+      objectReference: {fileID: 2053328552}
     - target: {fileID: 6078199453295326230, guid: d38d7abcfcbccd541876b712a02a9119, type: 3}
       propertyPath: patrol_path.Array.data[0]
       value: 

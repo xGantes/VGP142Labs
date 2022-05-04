@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace StarterAssets
+namespace VGP142.PlayerInputs
 {
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerInput))]
@@ -51,6 +51,7 @@ namespace StarterAssets
         private float verticalVelocity;
         private float terminalVelocity = 53.0f;
 
+
         // timeout deltatime
         private float jumpTimeoutDelta;
         private float fallTimeoutDelta;
@@ -65,7 +66,7 @@ namespace StarterAssets
         private PlayerInput playerInput;
         private Animator animator;
         private CharacterController controller;
-        private StarterAssetsInputs input;
+        private MainPlayerInputs input;
         private GameObject mainCamera;
 
         private const float threshold = 0.01f;
@@ -100,11 +101,11 @@ namespace StarterAssets
 
             hasAnimator = TryGetComponent(out animator);
             controller = GetComponent<CharacterController>();
-            input = GetComponent<StarterAssetsInputs>();
+            input = GetComponent<MainPlayerInputs>();
 #if ENABLE_INPUT_SYSTEM
             playerInput = GetComponent<PlayerInput>();
 #else
-			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
+			Debug.LogError( "Missing dependencies. Reinstall Dependencies to fix it");
 #endif
 
             AssignAnimationIDs();
@@ -121,6 +122,8 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
+            Attack();
+            Die();
         }
 
         private void LateUpdate()
@@ -177,9 +180,6 @@ namespace StarterAssets
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = input.sprint ? SprintSpeed : MoveSpeed;
 
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-            // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is no input, set the target speed to 0
             if (input.move == Vector2.zero) targetSpeed = 0.0f;
 
@@ -238,6 +238,16 @@ namespace StarterAssets
                 animator.SetFloat(animIDSpeed, animationBlend);
                 animator.SetFloat(animIDMotionSpeed, inputMagnitude);
             }
+
+            //when attacking set velocity to zero
+            if(input.attack)
+            {
+                input.move = Vector2.zero;
+                input.sprint = false;
+
+                //still need to stop rotation when attacking..
+                
+             }
         }
 
         private void JumpAndGravity()
@@ -307,6 +317,28 @@ namespace StarterAssets
             {
                 verticalVelocity += Gravity * Time.deltaTime;
             }
+        }
+
+        private void Attack()
+        {
+            if (input.attack)
+            {
+                animator.SetTrigger("Punch");
+                //Debug.Log("Attacking");
+                //no collision yet
+            }
+            input.attack = false;
+        }
+
+        private void Die()
+        {
+            //trial death
+            if (input.die)
+            {
+                animator.SetTrigger("Die");
+                Destroy(gameObject, 5);
+            }
+            input.die = false;
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

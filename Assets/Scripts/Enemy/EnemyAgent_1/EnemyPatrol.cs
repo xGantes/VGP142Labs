@@ -10,114 +10,117 @@ namespace VGP142.EnemyVision
     {
         None = 0,
         Patrol = 2,
+        Alert = 5,
+        Chase = 10,
+        Confused = 15, //After lost track of target
         Wait = 20,
-        //Alert
-        //Chase
-        //Confused
     }
 
     public enum EnemyPatrolType
     {
-        Rewind = 0,
         Loop = 2,
-        FacingOnly = 5,
+        //Rewind agent
+        //agent face forward only
     }
 
-    [RequireComponent(typeof(Rigidbody),typeof(Animator))]
+    [RequireComponent(typeof(Rigidbody))]
     public class EnemyPatrol : MonoBehaviour
     {
-        public float move_speed = 2f;
-        public float run_speed = 4f;
-        public float rotate_speed = 120f;
-        public float fall_speed = 5f;
-        public LayerMask obstacle_mask = ~(0);
-        public bool use_pathfind = false;
+        public float moveSpeed = 2f;
+        public float runSpeed = 4f;
+        public float rotateSpeed = 120f;
+        public float fallSpeed = 5f;
+        public LayerMask obstacleMask = ~(0);
+        public bool usePathfind = false;
 
+        //Enemy states
         [Header("State")]
         public EnemyState state = EnemyState.Patrol;
 
+        //Enemy patrol
         [Header("Patrol")]
         public EnemyPatrolType type;
-        public float wait_time = 1f;
-        public GameObject[] patrol_path;
+        public float waitTime = 1f;
+        public GameObject[] patrolPath;
 
+        //Enemy alert
         [Header("Alert")]
-        public float alert_wait_time = 3f;
-        public float alert_walk_time = 10f;
+        public float alertWaitTime = 3f;
+        public float alertWalkTime = 10f;
 
+        //Enemy follow
         [Header("Follow")]
-        public GameObject follow_target;
-        public float memory_duration = 4f;
+        public GameObject followTarget;
+        public float memoryDuration = 4f;
 
+        //enemy death
         public UnityAction onDeath;
 
+        //components
         private Rigidbody rigid;
-        private NavMeshAgent nav_agent;
+        private NavMeshAgent navAgent;
 
-        private Vector3 start_pos;
-        private Vector3 move_vect;
-        private Vector3 face_vect;
-        private float rotate_val;
-        private float state_timer = 0f;
+        //agents position
+        private Vector3 startPos;
+        private Vector3 moveVect;
+        private Vector3 faceVect;
+        private float rotateVal;
+        private float stateTimer = 0f;
         private bool paused = false;
 
-        private Vector3 move_target;
-        private Vector3 alert_target;
-        private float current_speed = 1f;
-        private Vector3 current_move;
-        private Vector3 current_rot_target;
-        private float current_rot_mult = 1f;
+        //agents alert function
+        private Vector3 moveTarget;
+        private Vector3 alertTarget;
+        private float   currentSpeed = 1f;
+        private Vector3 currentMove;
+        private Vector3 currentRotTarget;
+        private float currentRotMult = 1f;
         private bool waiting = false;
-        private float wait_timer = 0f;
+        private float waitTimer = 0f;
 
-        private int current_path = 0;
-        private bool path_rewind = false;
-        private bool using_navmesh = false;
+        //agents path
+        private int currentPath = 0;
+        private bool pathRewind = false;
+        private bool usingNavmesh = false;
 
-        private Vector3 last_seen_pos;
-        private GameObject last_target;
-        private float memory_timer = 0f;
+        //agents return path
+        private Vector3 lastSeenPos;
+        private GameObject lastTarget;
+        private float memoryTimer = 0f;
 
-        private List<Vector3> path_list = new List<Vector3>();
-
-        private static List<EnemyPatrol> enemy_list = new List<EnemyPatrol>();
+        private List<Vector3> pathList = new List<Vector3>();
+        private static List<EnemyPatrol> enemyList = new List<EnemyPatrol>();
 
         private void Awake()
         {
-            enemy_list.Add(this);
+            enemyList.Add(this);
+
             rigid = GetComponent<Rigidbody>();
-            nav_agent = GetComponent<NavMeshAgent>();
-            move_vect = Vector3.zero;
-            start_pos = transform.position;
-            move_target = transform.position;
-            current_rot_target = transform.position + transform.forward;
-            alert_target = follow_target ? follow_target.transform.position : transform.position;
-            last_seen_pos = transform.position;
-            current_speed = move_speed;
-            rotate_val = 0f;
+            navAgent = GetComponent<NavMeshAgent>();
 
-            if (type != EnemyPatrolType.FacingOnly)
-                path_list.Add(transform.position);
+            moveVect = Vector3.zero;
+            startPos = transform.position;
+            moveTarget = transform.position;
+            currentRotTarget = transform.position + transform.forward;
+            alertTarget = followTarget ? followTarget.transform.position : transform.position;
+            lastSeenPos = transform.position;
+            currentSpeed = moveSpeed;
+            rotateVal = 0f;
 
-            foreach (GameObject patrol in patrol_path)
+            foreach (GameObject patrol in patrolPath)
             {
                 if (patrol)
-                    path_list.Add(patrol.transform.position);
+                    pathList.Add(patrol.transform.position);
             }
 
-            current_path = 0;
-            if (path_list.Count >= 2)
-                current_path = 1; //Dont start at start pos
+            currentPath = 0;
+            if (pathList.Count >= 2)
+                currentPath = 1; //Dont start at start pos
         }
 
         private void OnDestroy()
         {
-            enemy_list.Remove(this);
-        }
-
-        void Start()
-        {
-
+            enemyList.Remove(this);
         }
 
         private void FixedUpdate()
@@ -128,28 +131,28 @@ namespace VGP142.EnemyVision
             bool fronted = CheckFronted(transform.forward);
             bool grounded = CheckGrounded(Vector3.down);
 
-            Vector3 dist_vect = (move_target - transform.position);
-            move_vect = dist_vect.normalized * current_speed * Mathf.Min(dist_vect.magnitude, 1f);
+            Vector3 dist_vect = (moveTarget - transform.position);
+            moveVect = dist_vect.normalized * currentSpeed * Mathf.Min(dist_vect.magnitude, 1f);
 
-            if (use_pathfind && nav_agent && using_navmesh && dist_vect.magnitude > 1f)
+            if (usePathfind && navAgent && usingNavmesh && dist_vect.magnitude > 1f)
             {
-                nav_agent.enabled = true;
-                nav_agent.speed = current_speed;
-                nav_agent.SetDestination(move_target);
+                navAgent.enabled = true;
+                navAgent.speed = currentSpeed;
+                navAgent.SetDestination(moveTarget);
                 rigid.velocity = Vector3.zero;
             }
             else
             {
                 if (fronted)
-                    move_vect = Vector3.zero;
+                    moveVect = Vector3.zero;
                 if (!grounded)
-                    move_vect += Vector3.down * fall_speed;
+                    moveVect += Vector3.down * fallSpeed;
 
-                if (nav_agent && nav_agent.enabled)
-                    nav_agent.enabled = false;
+                if (navAgent && navAgent.enabled)
+                    navAgent.enabled = false;
 
-                current_move = Vector3.MoveTowards(current_move, move_vect, move_speed * 10f * Time.fixedDeltaTime);
-                rigid.velocity = current_move;
+                currentMove = Vector3.MoveTowards(currentMove, moveVect, moveSpeed * 10f * Time.fixedDeltaTime);
+                rigid.velocity = currentMove;
             }
         }
 
@@ -158,28 +161,43 @@ namespace VGP142.EnemyVision
             if (paused)
                 return;
 
-            state_timer += Time.deltaTime;
-            wait_timer += Time.deltaTime;
+            stateTimer += Time.deltaTime;
+            waitTimer += Time.deltaTime;
+
+            if (state == EnemyState.Alert)
+            {
+                UpdateAlert();
+            }
 
             if (state == EnemyState.Patrol)
             {
                 UpdatePatrol();
             }
 
+            if (state == EnemyState.Chase)
+            {
+                UpdateFollow();
+            }
+
+            if (state == EnemyState.Confused)
+            {
+                UpdateConfused();
+            }
+
             //Manual Rotation
-            bool controlled_by_agent = use_pathfind && nav_agent && nav_agent.enabled && using_navmesh && nav_agent.hasPath;
-            rotate_val = 0f;
+            bool controlled_by_agent = usePathfind && navAgent && navAgent.enabled && usingNavmesh && navAgent.hasPath;
+            rotateVal = 0f;
 
             if (!controlled_by_agent && state != EnemyState.None && state != EnemyState.Wait)
             {
-                Vector3 dir = current_rot_target - transform.position;
+                Vector3 dir = currentRotTarget - transform.position;
                 dir.y = 0f;
                 if (dir.magnitude > 0.1f)
                 {
                     Quaternion target = Quaternion.LookRotation(dir.normalized, Vector3.up);
-                    Quaternion reachedRotation = Quaternion.RotateTowards(transform.rotation, target, rotate_speed * current_rot_mult * Time.deltaTime);
-                    rotate_val = Quaternion.Angle(transform.rotation, target);
-                    face_vect = dir.normalized;
+                    Quaternion reachedRotation = Quaternion.RotateTowards(transform.rotation, target, rotateSpeed * currentRotMult * Time.deltaTime);
+                    rotateVal = Quaternion.Angle(transform.rotation, target);
+                    faceVect = dir.normalized;
                     transform.rotation = reachedRotation;
                 }
             }
@@ -187,57 +205,57 @@ namespace VGP142.EnemyVision
 
         private void UpdateAlert()
         {
-            if (state_timer < alert_wait_time)
+            if (stateTimer < alertWaitTime)
             {
-                FaceToward(alert_target);
+                FaceToward(alertTarget);
             }
-            else if (state_timer < alert_wait_time + alert_walk_time)
+            else if (stateTimer < alertWaitTime + alertWalkTime)
             {
-                MoveTo(alert_target, move_speed);
+                MoveTo(alertTarget, moveSpeed);
             }
         }
 
         private void UpdateConfused()
         {
-            if (wait_timer > alert_wait_time)
+            
+            if (waitTimer > alertWaitTime)
             {
-                wait_timer = 0f;
+                waitTimer = 0f;
                 waiting = false;
-                alert_target = GetRandomLookTarget();
-                MoveTo(alert_target);
+                alertTarget = GetRandomLookTarget();
+                MoveTo(alertTarget);
             }
         }
 
         private void UpdatePatrol()
         {
-            bool facing_only = type == EnemyPatrolType.FacingOnly;
-            float dist = (transform.position - start_pos).magnitude;
+            float dist = (transform.position - startPos).magnitude;
             bool is_far = dist > 0.5f;
 
             //Facing only
-            if (!waiting && facing_only)
+            if (!waiting)
             {
                 if (is_far)
                 {
                     //Return to starting pos
-                    MoveTo(start_pos, move_speed);
-                    FaceToward(start_pos);
+                    MoveTo(startPos, moveSpeed);
+                    FaceToward(startPos);
                 }
                 else
                 {
                     //Rotate only
-                    Vector3 targ = path_list[current_path];
+                    Vector3 targ = pathList[currentPath];
                     FaceToward(targ);
                     CheckIfFacingReachedTarget(targ);
                 }
             }
 
             //Regular patrol
-            if (!waiting && !facing_only)
+            if (!waiting)
             {
                 //Move following path
-                Vector3 targ = path_list[current_path];
-                MoveTo(targ, move_speed);
+                Vector3 targ = pathList[currentPath];
+                MoveTo(targ, moveSpeed);
                 FaceToward(GetNextTarget());
 
                 //Check if reached target
@@ -246,15 +264,14 @@ namespace VGP142.EnemyVision
                 if (dist_vect.magnitude < 0.1f)
                 {
                     waiting = true;
-                    wait_timer = 0f;
+                    waitTimer = 0f;
                 }
 
                 //Check if obstacle ahead
                 bool fronted = CheckFronted(dist_vect.normalized);
-                if (fronted && wait_timer > 2f)
+                if (fronted && waitTimer > 2f)
                 {
-                    RewindPath();
-                    wait_timer = 0f;
+                    waitTimer = 0f;
                 }
             }
 
@@ -262,74 +279,57 @@ namespace VGP142.EnemyVision
             if (waiting)
             {
                 //Wait a bit
-                if (wait_timer > wait_time)
+                if (waitTimer > waitTime)
                 {
                     GoToNextPath();
                     waiting = false;
-                    wait_timer = 0f;
+                    waitTimer = 0f;
                 }
             }
         }
 
         private void UpdateFollow()
         {
-            Vector3 targ = follow_target ? follow_target.transform.position : last_seen_pos;
+            Vector3 targ = followTarget ? followTarget.transform.position : lastSeenPos;
 
             //Use memory if no more target
-            if (follow_target == null && last_target != null && memory_duration > 0.1f)
+            if (followTarget == null && lastTarget != null && memoryDuration > 0.1f)
             {
-                memory_timer += Time.deltaTime;
-                if (memory_timer < memory_duration)
+                memoryTimer += Time.deltaTime;
+                if (memoryTimer < memoryDuration)
                 {
-                    last_seen_pos = last_target.transform.position;
-                    targ = last_seen_pos;
+                    lastSeenPos = lastTarget.transform.position;
+                    targ = lastSeenPos;
                 }
             }
 
             //Move to target
-            MoveTo(targ, run_speed);
+            MoveTo(targ, runSpeed);
             FaceToward(GetNextTarget(), 2f);
 
-            if (follow_target != null)
+            if (followTarget != null)
             {
-                last_target = follow_target;
-                last_seen_pos = follow_target.transform.position;
-                memory_timer = 0f;
+                lastTarget = followTarget;
+                lastSeenPos = followTarget.transform.position;
+                memoryTimer = 0f;
             }
         }
 
         //---- Patrol -----
 
-        private void RewindPath()
-        {
-            if (type != EnemyPatrolType.FacingOnly)
-            {
-                path_rewind = !path_rewind;
-                current_path += path_rewind ? -1 : 1;
-                current_path = Mathf.Clamp(current_path, 0, path_list.Count - 1);
-            }
-        }
-
         private void GoToNextPath()
         {
-            if (type == EnemyPatrolType.FacingOnly)
+            if (type == EnemyPatrolType.Loop)
             {
-                if (current_path <= 0 || current_path >= path_list.Count - 1)
-                    path_rewind = !path_rewind;
-                current_path += path_rewind ? -1 : 1;
-                current_path = Mathf.Clamp(current_path, 0, path_list.Count - 1);
-            }
-            else if (type == EnemyPatrolType.Loop)
-            {
-                current_path = (current_path + 1) % path_list.Count;
-                current_path = Mathf.Clamp(current_path, 0, path_list.Count - 1);
+                currentPath = (currentPath + 1) % pathList.Count;
+                currentPath = Mathf.Clamp(currentPath, 0, pathList.Count - 1);
             }
             else
             {
-                if (current_path <= 0 || current_path >= path_list.Count - 1)
-                    path_rewind = !path_rewind;
-                current_path += path_rewind ? -1 : 1;
-                current_path = Mathf.Clamp(current_path, 0, path_list.Count - 1);
+                if (currentPath <= 0 || currentPath >= pathList.Count - 1)
+                    pathRewind = !pathRewind;
+                currentPath += pathRewind ? -1 : 1;
+                currentPath = Mathf.Clamp(currentPath, 0, pathList.Count - 1);
             }
         }
 
@@ -337,48 +337,59 @@ namespace VGP142.EnemyVision
 
         public void SetAlertTarget(Vector3 pos)
         {
-            alert_target = pos;
+            alertTarget = pos;
         }
 
         public void SetFollowTarget(GameObject atarget)
         {
-            follow_target = atarget;
-            if (follow_target != null)
+            followTarget = atarget;
+            if (followTarget != null)
             {
-                last_seen_pos = follow_target.transform.position;
-                memory_timer = 0f;
+                lastSeenPos = followTarget.transform.position;
+                memoryTimer = 0f;
             }
         }
 
         //---- Actions -----
 
+        public void Alert(Vector3 pos)
+        {
+            if (state != EnemyState.Chase)
+            {
+                ChangeState(EnemyState.Alert);
+                SetAlertTarget(pos);
+                StopMove();
+            }
+        }
+
         public void Follow(GameObject target)
         {
+            ChangeState(EnemyState.Chase);
             SetFollowTarget(target);
-            using_navmesh = true;
+            usingNavmesh = true;
         }
 
         public void MoveTo(Vector3 pos, float speed = 1f)
         {
-            move_target = pos;
-            current_speed = speed;
-            using_navmesh = true;
+            moveTarget = pos;
+            currentSpeed = speed;
+            usingNavmesh = true;
         }
 
         public void FaceToward(Vector3 pos, float speed_mult = 1f)
         {
-            current_rot_target = pos;
-            current_rot_mult = speed_mult;
+            currentRotTarget = pos;
+            currentRotMult = speed_mult;
         }
 
         public void StopMove()
         {
-            using_navmesh = false;
-            move_target = rigid.position;
-            current_move = Vector3.zero;
+            usingNavmesh = false;
+            moveTarget = rigid.position;
+            currentMove = Vector3.zero;
             rigid.velocity = Vector3.zero;
-            if (nav_agent && nav_agent.enabled)
-                nav_agent.ResetPath(); //Cancel previous path
+            if (navAgent && navAgent.enabled)
+                navAgent.ResetPath(); //Cancel previous path
         }
 
         public void Kill()
@@ -392,8 +403,8 @@ namespace VGP142.EnemyVision
         public void ChangeState(EnemyState state)
         {
             this.state = state;
-            state_timer = 0f;
-            wait_timer = 0f;
+            stateTimer = 0f;
+            waitTimer = 0f;
             waiting = false;
         }
 
@@ -413,15 +424,15 @@ namespace VGP142.EnemyVision
         {
             Vector3 origin = transform.position + Vector3.up * 1f;
             RaycastHit hit;
-            bool success = Physics.Raycast(new Ray(origin, dir.normalized), out hit, dir.magnitude, obstacle_mask.value);
-            return success && (follow_target == null || !hit.collider.transform.IsChildOf(follow_target.transform));
+            bool success = Physics.Raycast(new Ray(origin, dir.normalized), out hit, dir.magnitude, obstacleMask.value);
+            return success && (followTarget == null || !hit.collider.transform.IsChildOf(followTarget.transform));
         }
 
         public bool CheckGrounded(Vector3 dir)
         {
             Vector3 origin = transform.position + Vector3.up * 0.1f;
             RaycastHit hit;
-            return Physics.Raycast(new Ray(origin, dir.normalized), out hit, dir.magnitude, obstacle_mask.value);
+            return Physics.Raycast(new Ray(origin, dir.normalized), out hit, dir.magnitude, obstacleMask.value);
         }
 
         private void CheckIfFacingReachedTarget(Vector3 targ)
@@ -433,12 +444,19 @@ namespace VGP142.EnemyVision
             if (dot > 0.99f)
             {
                 waiting = true;
-                wait_timer = 0f;
+                waitTimer = 0f;
             }
         }
 
         //---- Getters ------
 
+        public bool HasReachedTarget()
+        {
+            Vector3 targ = followTarget ? followTarget.transform.position : lastSeenPos;
+            if (state == EnemyState.Alert)
+                targ = alertTarget;
+            return (targ - transform.position).magnitude < 0.5f;
+        }
 
         private Vector3 GetRandomLookTarget()
         {
@@ -455,34 +473,34 @@ namespace VGP142.EnemyVision
 
         public float GetStateTimer()
         {
-            return state_timer;
+            return stateTimer;
         }
 
         public Vector3 GetMove()
         {
-            return move_vect;
+            return moveVect;
         }
 
         public Vector3 GetFacing()
         {
-            return face_vect;
+            return faceVect;
         }
 
         public float GetRotationVelocity()
         {
-            return rotate_val;
+            return rotateVal;
         }
 
         public bool IsRunning()
         {
-            return state == EnemyState.Wait;
+            return state == EnemyState.Chase;
         }
 
         public Vector3 GetNextTarget()
         {
-            if (use_pathfind && nav_agent && nav_agent.enabled && using_navmesh && nav_agent.hasPath)
-                return nav_agent.nextPosition;
-            return move_target;
+            if (usePathfind && navAgent && navAgent.enabled && usingNavmesh && navAgent.hasPath)
+                return navAgent.nextPosition;
+            return moveTarget;
         }
 
         public bool IsPaused()
@@ -494,7 +512,7 @@ namespace VGP142.EnemyVision
         {
             float min_dist = range;
             EnemyPatrol nearest = null;
-            foreach (EnemyPatrol enemy in enemy_list)
+            foreach (EnemyPatrol enemy in enemyList)
             {
                 float dist = (enemy.transform.position - pos).magnitude;
                 if (dist < min_dist)
@@ -505,11 +523,11 @@ namespace VGP142.EnemyVision
             }
             return nearest;
         }
-
+        
         public static List<EnemyPatrol> GetAllInRange(Vector3 pos, float range)
         {
             List<EnemyPatrol> range_list = new List<EnemyPatrol>();
-            foreach (EnemyPatrol enemy in enemy_list)
+            foreach (EnemyPatrol enemy in enemyList)
             {
                 float dist = (enemy.transform.position - pos).magnitude;
                 if (dist < range)
@@ -522,7 +540,7 @@ namespace VGP142.EnemyVision
 
         public static List<EnemyPatrol> GetAll()
         {
-            return enemy_list;
+            return enemyList;
         }
 
         //----- Debug Gizmos -------
@@ -533,29 +551,24 @@ namespace VGP142.EnemyVision
             Gizmos.color = Color.red;
             Vector3 prev_pos = transform.position;
 
-            if (type != EnemyPatrolType.FacingOnly)
+            foreach (GameObject patrol in patrolPath)
             {
-                foreach (GameObject patrol in patrol_path)
+                if (patrol)
                 {
-                    if (patrol)
-                    {
-                        Gizmos.DrawLine(prev_pos, patrol.transform.position);
-                        prev_pos = patrol.transform.position;
-                    }
+                    Gizmos.DrawLine(prev_pos, patrol.transform.position);
+                    prev_pos = patrol.transform.position;
                 }
-
-                if (type == EnemyPatrolType.Loop)
-                    Gizmos.DrawLine(prev_pos, transform.position);
             }
 
-            if (type == EnemyPatrolType.FacingOnly)
+            if (type == EnemyPatrolType.Loop)
+            Gizmos.DrawLine(prev_pos, transform.position);
+            
+
+            foreach (GameObject patrol in patrolPath)
             {
-                foreach (GameObject patrol in patrol_path)
+                if (patrol)
                 {
-                    if (patrol)
-                    {
-                        Gizmos.DrawLine(transform.position, patrol.transform.position);
-                    }
+                    Gizmos.DrawLine(transform.position, patrol.transform.position);
                 }
             }
         }
