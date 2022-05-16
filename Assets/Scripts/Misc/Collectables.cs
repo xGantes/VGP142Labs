@@ -1,33 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GameManagerSettings;
 
-public class Collectables : MonoBehaviour
+namespace VGP142.PlayerInputs
 {
-    enum CollectibleType
+    public class Collectables : MonoBehaviour
     {
-        STAR,
-        HEART,
-        DIAMOND,
-        SPHERE,
-        CRYSTAL
-    }
-    [SerializeField] CollectibleType collectables;
-    private Rigidbody rb;
-    public int gamescore;
-
-    private void OnTriggerEnter(Collider collision)
-    {
-        if (collision.gameObject.tag == "Player")
+        enum CollectibleType
         {
-            switch (collectables)
+            STAR,
+            HEART,
+            DIAMOND,
+            SPHERE,
+            CRYSTAL
+        }
+        [SerializeField] CollectibleType collectables;
+        private Rigidbody rb;
+        public int gamescore;
+
+        private void OnTriggerEnter(Collider collision)
+        {
+            if (collision.gameObject.tag == "Player")
             {
-                case CollectibleType.STAR:
-                    GameManager.instances.score += gamescore;
-                    break;
+                switch (collectables)
+                {
+                    case CollectibleType.STAR:
+                        //GameManager.instances.score += gamescore;
+                        break;
+                }
+                Destroy(gameObject);
             }
-            Destroy(gameObject);
         }
     }
 }
+

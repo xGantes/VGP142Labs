@@ -53,8 +53,8 @@ namespace VGP142.EnemyVision
         public GameObject followTarget;
         public float memoryDuration = 4f;
 
-        //enemy death
-        public UnityAction onDeath;
+        [Header("Health")]
+        public float health = 100f;
 
         //components
         private Rigidbody rigid;
@@ -390,14 +390,6 @@ namespace VGP142.EnemyVision
             rigid.velocity = Vector3.zero;
             if (navAgent && navAgent.enabled)
                 navAgent.ResetPath(); //Cancel previous path
-        }
-
-        public void Kill()
-        {
-            if (onDeath != null)
-                onDeath.Invoke();
-
-            Destroy(gameObject);
         }
 
         public void ChangeState(EnemyState state)

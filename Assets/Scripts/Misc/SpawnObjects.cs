@@ -2,19 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnObjects : MonoBehaviour
+namespace VGP142.PlayerInputs
 {
-    public Collectables[] collectableArray;
-
-    // Start is called before the first frame update
-    void Start()
+    public class SpawnObjects : MonoBehaviour
     {
-        Instantiate(collectableArray[Random.Range(0, 4)], transform.position, transform.rotation);
-    }
+        public Collectables[] collectableArray;
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(transform.position, 0.2f);
+        // Start is called before the first frame update
+        void Start()
+        {
+            Instantiate(collectableArray[Random.Range(0, 4)], transform.position, transform.rotation);
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(transform.position, 0.2f);
+        }
     }
 }

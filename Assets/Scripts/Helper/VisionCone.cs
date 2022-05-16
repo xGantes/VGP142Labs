@@ -17,11 +17,6 @@ namespace VGP142.EnemyVision
         public LayerMask obstacle_mask = ~(0);
         public bool show_two_levels = false;
 
-        [Header("Material")]
-        public Material cone_material;
-        public Material cone_far_material;
-        public int sort_order = 1;
-
         [Header("Optimization")]
         public int precision = 60;
         public float refresh_rate = 0f;
@@ -36,13 +31,11 @@ namespace VGP142.EnemyVision
         {
             render = gameObject.AddComponent<MeshRenderer>();
             mesh = gameObject.AddComponent<MeshFilter>();
-            render.sharedMaterial = cone_material;
             render.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             render.receiveShadows = false;
             render.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             render.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
             render.allowOcclusionWhenDynamic = false;
-            render.sortingOrder = sort_order;
 
             if (show_two_levels)
             {
@@ -52,13 +45,11 @@ namespace VGP142.EnemyVision
 
                 render_far = far_cone.AddComponent<MeshRenderer>();
                 mesh_far = far_cone.AddComponent<MeshFilter>();
-                render_far.sharedMaterial = cone_far_material;
                 render_far.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 render_far.receiveShadows = false;
                 render_far.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
                 render_far.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
                 render_far.allowOcclusionWhenDynamic = false;
-                render.sortingOrder = sort_order;
             }
         }
 

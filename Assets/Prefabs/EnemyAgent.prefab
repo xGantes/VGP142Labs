@@ -627,10 +627,10 @@ GameObject:
   - component: {fileID: 2271868058746430069}
   - component: {fileID: 2271868058746430068}
   - component: {fileID: 2271868058746430067}
-  - component: {fileID: 1414633899951828379}
+  - component: {fileID: 448381115}
   m_Layer: 0
   m_Name: EnemyAgent
-  m_TagString: Player
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -708,7 +708,7 @@ MonoBehaviour:
   velocity: 0
   desiredVelocity: 0
   currentPath: 0
---- !u!114 &1414633899951828379
+--- !u!114 &448381115
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -717,17 +717,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2271868058746430066}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd6e6bb117906c143ada32c3dc5df82b, type: 3}
+  m_Script: {fileID: 11500000, guid: ff8313dbfe011884c860206e1db71e0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshColor: {r: 1, g: 0, b: 0, a: 0.12941177}
-  Interact:
-    serializedVersion: 2
-    m_Bits: 0
-  distance: 4.3
-  angle: 46.8
-  height: 1.63
-  scanFrequency: 30
+  health: 100
 --- !u!1 &2400898582761995760
 GameObject:
   m_ObjectHideFlags: 0
