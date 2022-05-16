@@ -1,7 +1,5 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 namespace VGP142.PlayerInputs
 {
@@ -41,13 +39,6 @@ namespace VGP142.PlayerInputs
         public float CameraAngleOverride = 0.0f;
         public bool LockCameraPosition = false;
 
-        [Header("Player Health")]
-        public int maxHealth = 10;
-        public int currentHealth;
-        public bool isDying;
-        float deathTimer = 0.0f;
-        const float waitingTime = 4.0f;
-
         // cinemachine
         private float cinemachineTargetYaw;
         private float cinemachineTargetPitch;
@@ -59,7 +50,7 @@ namespace VGP142.PlayerInputs
         private float rotationVelocity;
         private float verticalVelocity;
         private float terminalVelocity = 53.0f;
-        public float moveCountdown = 0.5f;
+
 
         // timeout deltatime
         private float jumpTimeoutDelta;
@@ -71,15 +62,6 @@ namespace VGP142.PlayerInputs
         private int animIDJump;
         private int animIDFreeFall;
         private int animIDMotionSpeed;
-
-        //attacking
-        private bool isAttacking;
-        //public float attackCooldown = 1.0f;
-        //private float nextFireTime = 0f;
-        //public static int numOfClicks = 0;
-        //float lastClickedTime = 0;
-        //float maxComboDelay = 1;
-
 
         private PlayerInput playerInput;
         private Animator animator;
@@ -95,12 +77,18 @@ namespace VGP142.PlayerInputs
         {
             get
             {
+#if ENABLE_INPUT_SYSTEM
                 return playerInput.currentControlScheme == "KeyboardMouse";
+#else
+				return false;
+#endif
             }
         }
 
+
         private void Awake()
         {
+            // get a reference to our main camera
             if (mainCamera == null)
             {
                 mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
@@ -114,14 +102,17 @@ namespace VGP142.PlayerInputs
             hasAnimator = TryGetComponent(out animator);
             controller = GetComponent<CharacterController>();
             input = GetComponent<MainPlayerInputs>();
+#if ENABLE_INPUT_SYSTEM
             playerInput = GetComponent<PlayerInput>();
+#else
+			Debug.LogError( "Missing dependencies. Reinstall Dependencies to fix it");
+#endif
 
             AssignAnimationIDs();
 
+            // reset our timeouts on start
             jumpTimeoutDelta = JumpTimeout;
             fallTimeoutDelta = FallTimeout;
-
-            currentHealth = maxHealth;
         }
 
         private void Update()
@@ -130,9 +121,9 @@ namespace VGP142.PlayerInputs
 
             JumpAndGravity();
             GroundedCheck();
+            Move();
             Attack();
             Die();
-            Move();
         }
 
         private void LateUpdate()
@@ -148,8 +139,6 @@ namespace VGP142.PlayerInputs
             animIDFreeFall = Animator.StringToHash("FreeFall");
             animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
         }
-
-        #region Control Region
 
         private void GroundedCheck()
         {
@@ -188,43 +177,77 @@ namespace VGP142.PlayerInputs
 
         private void Move()
         {
-            if (!isAttacking && !isDying)
+            // set target speed based on move speed, sprint speed and if sprint is pressed
+            float targetSpeed = input.sprint ? SprintSpeed : MoveSpeed;
+
+            // if there is no input, set the target speed to 0
+            if (input.move == Vector2.zero) targetSpeed = 0.0f;
+
+            // a reference to the players current horizontal velocity
+            float currentHorizontalSpeed = new Vector3(controller.velocity.x, 0.0f, controller.velocity.z).magnitude;
+
+            float speedOffset = 0.1f;
+            float inputMagnitude = input.analogMovement ? input.move.magnitude : 1f;
+
+            // accelerate or decelerate to target speed
+            if (currentHorizontalSpeed < targetSpeed - speedOffset ||
+                currentHorizontalSpeed > targetSpeed + speedOffset)
             {
-                Vector3 inputDirection = new Vector3(input.move.x, 0.0f, input.move.y).normalized;
-                float targetSpeed = input.sprint ? SprintSpeed : MoveSpeed;
+                // creates curved result rather than a linear one giving a more organic speed change
+                // note T in Lerp is clamped, so we don't need to clamp our speed
+                speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
+                    Time.deltaTime * SpeedChangeRate);
 
-                if (input.move == Vector2.zero) targetSpeed = 0.0f;
-                float currentHorizontalSpeed = new Vector3(controller.velocity.x, 0.0f, controller.velocity.z).magnitude;
-
-                float speedOffset = 0.1f;
-                if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
-                {
-                    speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * 1.0f, Time.deltaTime * SpeedChangeRate);
-                }
-                else
-                {
-                    speed = targetSpeed;
-                }
-
-                if (input.move != Vector2.zero)
-                {
-                    targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + mainCamera.transform.eulerAngles.y;
-                    float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref rotationVelocity, RotationSmoothTime);
-                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-                }
-                Vector3 targetDirection = Quaternion.Euler(0.0f, targetRotation, 0.0f) * Vector3.forward;
-                controller.Move(targetDirection.normalized * (speed * Time.deltaTime) + new Vector3(0.0f, verticalVelocity, 0.0f) * Time.deltaTime);
-
-                // update animator if using character
-                animationBlend = Mathf.Lerp(animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-                if (animationBlend < 0.01f) animationBlend = 0f;
-
-                if (hasAnimator)
-                {
-                    animator.SetFloat(animIDSpeed, animationBlend);
-                    animator.SetFloat(animIDMotionSpeed, 1.0f);
-                }
+                // round speed to 3 decimal places
+                speed = Mathf.Round(speed * 1000f) / 1000f;
             }
+            else
+            {
+                speed = targetSpeed;
+            }
+
+            animationBlend = Mathf.Lerp(animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+            if (animationBlend < 0.01f) animationBlend = 0f;
+
+            // normalise input direction
+            Vector3 inputDirection = new Vector3(input.move.x, 0.0f, input.move.y).normalized;
+
+            // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
+            // if there is a move input rotate player when the player is moving
+            if (input.move != Vector2.zero)
+            {
+                targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
+                                  mainCamera.transform.eulerAngles.y;
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref rotationVelocity,
+                    RotationSmoothTime);
+
+                // rotate to face input direction relative to camera position
+                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+            }
+
+
+            Vector3 targetDirection = Quaternion.Euler(0.0f, targetRotation, 0.0f) * Vector3.forward;
+
+            // move the player
+            controller.Move(targetDirection.normalized * (speed * Time.deltaTime) +
+                             new Vector3(0.0f, verticalVelocity, 0.0f) * Time.deltaTime);
+
+            // update animator if using character
+            if (hasAnimator)
+            {
+                animator.SetFloat(animIDSpeed, animationBlend);
+                animator.SetFloat(animIDMotionSpeed, inputMagnitude);
+            }
+
+            //when attacking set velocity to zero
+            if(input.attack)
+            {
+                input.move = Vector2.zero;
+                input.sprint = false;
+
+                //still need to stop rotation when attacking..
+                
+             }
         }
 
         private void JumpAndGravity()
@@ -287,7 +310,6 @@ namespace VGP142.PlayerInputs
 
                 // if we are not grounded, do not jump
                 input.jump = false;
-                input.attack = false;
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -297,40 +319,15 @@ namespace VGP142.PlayerInputs
             }
         }
 
-        #endregion
-
-        #region Attack Region
-
-        public void StartAttacking()
-        {
-            isAttacking = true;
-        }
-
-        public void StopAttacking()
-        {
-            isAttacking = false;
-        }
-
         private void Attack()
         {
-            if (input.attack && Grounded && !input.jump)
+            if (input.attack)
             {
-                if (!isAttacking)
-                {
-                    StartAttacking();
-                    animator.SetTrigger("Attacks");
-                }
+                animator.SetTrigger("Punch");
+                //Debug.Log("Attacking");
+                //no collision yet
             }
             input.attack = false;
-        }
-
-        #endregion
-
-        #region Takedamage and Die Region
-
-        void TakeDamage(int amount)
-        {
-            currentHealth -= amount;
         }
 
         private void Die()
@@ -338,31 +335,11 @@ namespace VGP142.PlayerInputs
             //trial death
             if (input.die)
             {
-                TakeDamage(20);
-                Debug.Log("Take damage " + currentHealth);
-                input.die = false;
-            }
-
-            if (currentHealth <= 0)
-            {
-                isDying = true;
-                
-            }
-
-            if (isDying)
-            {
                 animator.SetTrigger("Die");
-
-                deathTimer += Time.deltaTime;
-                if (deathTimer >= waitingTime)
-                {
-                    Destroy(gameObject);
-                    SceneManager.LoadScene("GameOverScene");
-                }
+                Destroy(gameObject, 5);
             }
+            input.die = false;
         }
-
-        #endregion
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
