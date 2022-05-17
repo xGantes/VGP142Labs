@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace GameManagerSettings
+namespace VGP142.PlayerInputs
 {
     public class GameManager : Singleton<GameManager>
     {

@@ -2213,9 +2213,10 @@ GameObject:
   - component: {fileID: 6078199453295326230}
   - component: {fileID: 6078199453295326229}
   - component: {fileID: 6078199453295326227}
+  - component: {fileID: 7864156640260002912}
   m_Layer: 0
   m_Name: EnemyAgentB
-  m_TagString: Player
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2306,25 +2307,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76921c5dd3a511f4fb5afad2a178086c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  move_speed: 2
-  run_speed: 4
-  rotate_speed: 120
-  fall_speed: 5
-  obstacle_mask:
+  moveSpeed: 2
+  runSpeed: 4
+  rotateSpeed: 120
+  fallSpeed: 5
+  obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  use_pathfind: 0
+  usePathfind: 0
   state: 2
   type: 2
-  wait_time: 1
-  patrol_path:
+  waitTime: 1
+  patrolPath:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  alert_wait_time: 3
-  alert_walk_time: 10
-  follow_target: {fileID: 0}
-  memory_duration: 4
+  alertWaitTime: 3
+  alertWalkTime: 10
+  followTarget: {fileID: 0}
+  memoryDuration: 4
 --- !u!114 &6078199453295326229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2347,9 +2348,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   groupDetect: 0
+  detectTime: 1
+  alertedTime: 10
+  followTime: 10
+  dontReturn: 0
   eye: {fileID: 6078199453203555330}
-  vision_prefab: {fileID: 6058987190590874651, guid: c2dd9468b3ed19848b24edab002f137c, type: 3}
-  death_fx_prefab: {fileID: 0}
+  visionPrefab: {fileID: 6058987190590874651, guid: c2dd9468b3ed19848b24edab002f137c, type: 3}
+  deathFxPrefab: {fileID: 0}
 --- !u!114 &6078199453295326227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2362,7 +2367,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 059290927f02d454caba0e80086d1361, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  exclamaPrefab: {fileID: 0}
+  exclama_prefab: {fileID: 0}
+  death_fx_prefab: {fileID: 0}
+--- !u!114 &7864156640260002912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6078199453295326228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e1fba8ca358c9241bc0768fc70c30bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
 --- !u!1 &6078199453305207221
 GameObject:
   m_ObjectHideFlags: 0

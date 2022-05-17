@@ -12,15 +12,13 @@ namespace VGP142.EnemyVision
         Patrol = 2,
         Alert = 5,
         Chase = 10,
-        Confused = 15, //After lost track of target
+        Confused = 15,
         Wait = 20,
     }
 
     public enum EnemyPatrolType
     {
         Loop = 2,
-        //Rewind agent
-        //agent face forward only
     }
 
     [RequireComponent(typeof(Rigidbody))]

@@ -29,13 +29,11 @@ namespace VGP142.EnemyVision
         [Header("Ref")]
         public Transform eye;
         public GameObject visionPrefab;
-        public GameObject deathFxPrefab;
 
-        public UnityAction<TargetVision, int> onSeeTarget; //As soon as seen (Patrol->Alert)  int:0=touch, 1=near, 2=far, 3:other
-        public UnityAction<TargetVision, int> onDetectTarget; //detect_time seconds after seen (Alert->Chase)  int:0=touch, 1=near, 2=far
+        public UnityAction<TargetVision, int> onSeeTarget; 
+        public UnityAction<TargetVision, int> onDetectTarget;
         public UnityAction<TargetVision> onTouchTarget;
         public UnityAction<Vector3> onAlert;
-        public UnityAction onDeath;
 
         private EnemyPatrol enemy;
 
@@ -52,8 +50,6 @@ namespace VGP142.EnemyVision
         {
             enemy_list.Add(this);
             enemy = GetComponent<EnemyPatrol>();
-            if (enemy != null)
-                enemy.onDeath += OnDeath;
         }
 
         private void OnDestroy()
@@ -435,15 +431,6 @@ namespace VGP142.EnemyVision
         public EnemyPatrol GetEnemy()
         {
             return enemy;
-        }
-
-        private void OnDeath()
-        {
-            if (vision)
-                vision.gameObject.SetActive(false);
-
-            if (onDeath != null)
-                onDeath.Invoke();
         }
 
         public static EnemyVision GetNearest(Vector3 pos, float range = 999f)
