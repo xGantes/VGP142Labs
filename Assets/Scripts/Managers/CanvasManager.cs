@@ -28,19 +28,8 @@ namespace VGP142.PlayerInputs
         public Text staminaText;
         public Text sliderText;
 
-        [Header("Slider")]
-        public Slider volSlide;
-        public Slider healthSlider;
-        public Slider staminaSlider;
+        //public GameManager playerHealth;
 
-        public GameManager playerHealth;
-        public Image imageFill;
-
-        private void Awake()
-        {
-            healthSlider = GetComponent<Slider>();
-            staminaSlider = GetComponent<Slider>();
-        }
         void Start()
         {
             if (settingButton)
@@ -59,12 +48,14 @@ namespace VGP142.PlayerInputs
             {
                 tryAgainButton.onClick.AddListener(() => tryAgain());
             }
-            if (volSlide && sliderText)
-            {
-                volSlide.onValueChanged.AddListener((value) => OnSliderValueChange(value));
-                sliderText.text = volSlide.value.ToString();
-            }
+            //if (volSlide && sliderText)
+            //{
+            //    volSlide.onValueChanged.AddListener((value) => OnSliderValueChange(value));
+            //    sliderText.text = volSlide.value.ToString();
+            //}
         }
+
+
         public void showMainMenu()
         {
             settingMenu.SetActive(false);

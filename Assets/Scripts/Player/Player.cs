@@ -47,7 +47,16 @@ namespace VGP142.PlayerInputs
         float deathTimer = 0.0f;
         const float waitingTime = 4.0f;
 
+        [Header("Message Panel")]
+        public GameObject messagePanel;
+
+        [Header("Active Weapon")]
+        public GameObject weaponHolder;
+        //public GameObject weapon;
+        //public Transform weaponParent;
+
         private bool isAttacking;
+        private bool isPickingUp;
 
         // cinemachine
         private float cinemachineTargetYaw;
@@ -115,6 +124,13 @@ namespace VGP142.PlayerInputs
             fallTimeoutDelta = FallTimeout;
 
             currentHealth = maxHealth;
+
+            ////active weapon
+            //GameObject existingWeapon = GetComponentInChildren<GameObject>();
+            //if (existingWeapon)
+            //{
+            //    Equip(existingWeapon);
+            //}
         }
 
         private void Update()
@@ -128,6 +144,7 @@ namespace VGP142.PlayerInputs
             Move();
             Attack();
             Die();
+            OnInteract();
         }
 
         private void LateUpdate()
@@ -144,14 +161,39 @@ namespace VGP142.PlayerInputs
             animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
         }
 
+        #region Trigger Region
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.tag == "WeaponCollider")
+            {
+                Debug.Log("Weapon is close");
+                //OpenMessagePanel();
+                input.interact = true;
+
+                if (input.interact)
+                {
+                    weaponHolder.SetActive(true);
+                }
+            }
+        }
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.tag == "WeaponCollider")
+            {
+                Debug.Log("Weapon is not close");
+                //CloseMessagePanel();
+            }
+        }
+
+        #endregion
+
         #region Control Region
 
         private void GroundedCheck()
         {
-            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset,
-                transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
-                QueryTriggerInteraction.Ignore);
+            Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
+            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 
             // update animator if using character
             if (hasAnimator)
@@ -207,6 +249,7 @@ namespace VGP142.PlayerInputs
                     speed = targetSpeed;
                 }
                 animationBlend = Mathf.Lerp(animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+
                 if (animationBlend < 0.01f) animationBlend = 0f;
 
                 Vector3 inputDirection = new Vector3(input.move.x, 0.0f, input.move.y).normalized;
@@ -242,10 +285,7 @@ namespace VGP142.PlayerInputs
                 }
 
                 // stop our velocity dropping infinitely when grounded
-                if (verticalVelocity < 0.0f)
-                {
-                    verticalVelocity = -2f;
-                }
+                if (verticalVelocity < 0.0f) { verticalVelocity = -2f; }
 
                 // Jump
                 if (input.jump && jumpTimeoutDelta <= 0.0f)
@@ -359,6 +399,62 @@ namespace VGP142.PlayerInputs
                     SceneManager.LoadScene("GameOverScene");
                 }
             }
+        }
+
+        #endregion
+
+        #region Interactables
+
+        //message
+        public void OpenMessagePanel()
+        {
+            messagePanel.SetActive(true);
+        }
+
+        public void CloseMessagePanel()
+        {
+            messagePanel.SetActive(false);
+        }
+        
+        //animation pickup
+        private void StartPicking()
+        {
+            isPickingUp = true;
+        }
+
+        private void StopPicking()
+        {
+            isPickingUp = false;
+        }
+
+        //public void Equip(GameObject newWeapon)
+        //{
+        //    if (weapon)
+        //    {
+        //        Destroy(gameObject);
+        //    }
+        //    weapon = newWeapon;
+        //    weapon.transform.parent = weaponParent;
+        //    weapon.transform.localPosition = Vector3.zero;
+        //    weapon.transform.localRotation = Quaternion.identity;
+        //}
+
+        private void OnInteract()
+        {
+            // Execute logic only on button pressed
+            if (input.interact)
+            {
+                if (!isPickingUp)
+                {
+                    if (weaponHolder == true)
+                    {
+                        CloseMessagePanel();
+                    }
+                    StartPicking();
+                    animator.SetTrigger("WeaponPickup");
+                }
+            }
+            input.interact = false;
         }
 
         #endregion

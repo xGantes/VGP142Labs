@@ -14,7 +14,14 @@ namespace VGP142.PlayerInputs
             SPHERE,
             CRYSTAL
         }
+
+        enum WeaponType
+        {
+            BROADSWORD
+        }
+
         [SerializeField] CollectibleType collectables;
+        [SerializeField] WeaponType weapons;
         private Rigidbody rb;
         public int gamescore;
 
@@ -29,7 +36,15 @@ namespace VGP142.PlayerInputs
                         break;
                 }
                 Destroy(gameObject);
+
+                switch (weapons)
+                {
+                    case WeaponType.BROADSWORD:
+                        //do something
+                        break;
+                }
             }
+
         }
     }
 }

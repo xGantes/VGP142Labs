@@ -80,6 +80,24 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""4c3a78a9-c155-49b5-92bb-9f31c8fd4e31"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""06ee60a2-7e9b-4d59-9694-85f99289a90e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -280,6 +298,28 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                     ""action"": ""Die"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dc0e24cf-8598-4ab0-9063-880c662f9b34"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fbccd6ec-6e58-4d44-9c79-04ff3ae39aa1"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -342,6 +382,8 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
         m_Player_Die = m_Player.FindAction("Die", throwIfNotFound: true);
+        m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -407,6 +449,8 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_Attack;
     private readonly InputAction m_Player_Die;
+    private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_Drop;
     public struct PlayerActions
     {
         private @MainPlayer m_Wrapper;
@@ -417,6 +461,8 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
         public InputAction @Attack => m_Wrapper.m_Player_Attack;
         public InputAction @Die => m_Wrapper.m_Player_Die;
+        public InputAction @Interact => m_Wrapper.m_Player_Interact;
+        public InputAction @Drop => m_Wrapper.m_Player_Drop;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -444,6 +490,12 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                 @Die.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDie;
                 @Die.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDie;
                 @Die.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDie;
+                @Interact.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnInteract;
+                @Interact.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnInteract;
+                @Interact.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnInteract;
+                @Drop.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
+                @Drop.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
+                @Drop.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDrop;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -466,6 +518,12 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                 @Die.started += instance.OnDie;
                 @Die.performed += instance.OnDie;
                 @Die.canceled += instance.OnDie;
+                @Interact.started += instance.OnInteract;
+                @Interact.performed += instance.OnInteract;
+                @Interact.canceled += instance.OnInteract;
+                @Drop.started += instance.OnDrop;
+                @Drop.performed += instance.OnDrop;
+                @Drop.canceled += instance.OnDrop;
             }
         }
     }
@@ -514,5 +572,7 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         void OnSprint(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
         void OnDie(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
+        void OnDrop(InputAction.CallbackContext context);
     }
 }

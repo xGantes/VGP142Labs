@@ -12,6 +12,8 @@ namespace VGP142.PlayerInputs
 		public bool jump;
 		public bool sprint;
 		public bool attack;
+		public bool interact;
+		public bool drop;
 
 		//trial
 		public bool die;
@@ -59,8 +61,30 @@ namespace VGP142.PlayerInputs
             jump = newJumpState;
         }
 
-		//attack
-		public void OnAttack(InputValue value)
+        //interact
+        public void OnInteract(InputValue value)
+        {
+			InpteractInput(value.isPressed);
+        }
+
+        public void InpteractInput(bool newInteractState)
+        {
+            interact = newInteractState;
+        }
+
+        //drop
+        public void OnDrop(InputValue value)
+        {
+            DropInput(value.isPressed);
+        }
+
+        public void DropInput(bool newDropState)
+        {
+            drop = newDropState;
+        }
+
+        //attack
+        public void OnAttack(InputValue value)
         {
 			AttackInput(value.isPressed);
         }
