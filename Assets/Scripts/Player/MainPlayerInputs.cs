@@ -14,6 +14,13 @@ namespace VGP142.PlayerInputs
 		public bool attack;
 		public bool interact;
 		public bool drop;
+        public bool pause;
+
+        //ingame
+        public bool resume;
+        public bool save;
+        public bool load;
+        public bool quit;
 
 		//trial
 		public bool die;
@@ -93,7 +100,47 @@ namespace VGP142.PlayerInputs
 			attack = newFireState;
         }
 
-		//die trial
+        //pause
+        public void OnPause(InputValue value)
+        {
+            PauseInput(value.isPressed);
+        }
+        public void PauseInput(bool newPauseState)
+        {
+            pause = newPauseState;
+        }
+
+        //resume
+        public void OnResume(InputValue value)
+        {
+            ResumeInput(value.isPressed);
+        }
+        public void ResumeInput(bool newResumeState)
+        {
+            resume = newResumeState;
+        }
+
+        //save
+        public void OnSave(InputValue value)
+        {
+            SaveInput(value.isPressed);
+        }
+        public void SaveInput(bool newSaveState)
+        {
+            save = newSaveState;
+        }
+
+        //load
+        public void OnLoad(InputValue value)
+        {
+            LoadInput(value.isPressed);
+        }
+        public void LoadInput(bool newLoadState)
+        {
+            load = newLoadState;
+        }
+
+        //die trial
         public void OnDie(InputValue value)
         {
             DieInput(value.isPressed);

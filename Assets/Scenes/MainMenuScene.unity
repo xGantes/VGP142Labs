@@ -600,17 +600,12 @@ MonoBehaviour:
   returnToMenu: {fileID: 1373152650}
   tryAgainButton: {fileID: 0}
   mainMenu: {fileID: 1514283780}
-  pauseMenu: {fileID: 0}
   settingMenu: {fileID: 1039065790}
   liveText: {fileID: 0}
   healthText: {fileID: 0}
   staminaText: {fileID: 0}
   sliderText: {fileID: 0}
-  volSlide: {fileID: 0}
-  healthSlider: {fileID: 0}
-  staminaSlider: {fileID: 0}
-  playerHealth: {fileID: 0}
-  imageFill: {fileID: 0}
+  resumeMenu: {fileID: 0}
 --- !u!1 &477519730
 GameObject:
   m_ObjectHideFlags: 0

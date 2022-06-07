@@ -1,6 +1,9 @@
+using System.Xml;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace VGP142.PlayerInputs
 {
@@ -41,14 +44,22 @@ namespace VGP142.PlayerInputs
         public bool LockCameraPosition = false;
 
         [Header("Health")]
+        public GameObject[] hearts;
+        private int life;
         public int maxHealth = 100;
         public int currentHealth;
-        private bool isDying;
         float deathTimer = 0.0f;
         const float waitingTime = 4.0f;
+        private bool isDying;
 
-        [Header("Message Panel")]
+        [Header("HUD Panel")]
         public GameObject messagePanel;
+        public GameObject InGamePanel;
+        private bool togglePanel;
+
+        //save and load
+        public float playerPosX, playerPosY, playerPosZ;
+        //checkpoint
 
         [Header("Active Weapon")]
         public GameObject weaponHolder;
@@ -86,6 +97,8 @@ namespace VGP142.PlayerInputs
         private CharacterController controller;
         private MainPlayerInputs input;
         private GameObject mainCamera;
+        private GameStateManager GM;
+        private GameManager gameManager;
 
         private const float threshold = 0.01f;
         private bool hasAnimator;
@@ -110,12 +123,13 @@ namespace VGP142.PlayerInputs
 
         private void Start()
         {
+            gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
             cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
-
-            hasAnimator = TryGetComponent(out animator);
             controller = GetComponent<CharacterController>();
-            input = GetComponent<MainPlayerInputs>();
+            hasAnimator = TryGetComponent(out animator);
             playerInput = GetComponent<PlayerInput>();
+            input = GetComponent<MainPlayerInputs>();
+            GM = GetComponent<GameStateManager>();
 
             AssignAnimationIDs();
 
@@ -124,6 +138,9 @@ namespace VGP142.PlayerInputs
             fallTimeoutDelta = FallTimeout;
 
             currentHealth = maxHealth;
+
+            //last checkpoint
+            transform.position = gameManager.lastCheckPoint;
 
             ////active weapon
             //GameObject existingWeapon = GetComponentInChildren<GameObject>();
@@ -143,8 +160,10 @@ namespace VGP142.PlayerInputs
             GroundedCheck();
             Move();
             Attack();
+            OnHearts();
             Die();
             OnInteract();
+            OnGamePanel();
         }
 
         private void LateUpdate()
@@ -238,8 +257,7 @@ namespace VGP142.PlayerInputs
                 {
                     // creates curved result rather than a linear one giving a more organic speed change
                     // note T in Lerp is clamped, so we don't need to clamp our speed
-                    speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                        Time.deltaTime * SpeedChangeRate);
+                    speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
 
                     // round speed to 3 decimal places
                     speed = Mathf.Round(speed * 1000f) / 1000f;
@@ -367,7 +385,12 @@ namespace VGP142.PlayerInputs
 
         #endregion
 
-        #region TakeDamage and Die
+        #region Health, TakeDamage and Die
+
+        void OnHearts()
+        {
+                
+        }
 
         public void OnTakeDamage(int amount)
         {
@@ -376,6 +399,7 @@ namespace VGP142.PlayerInputs
 
         private void Die()
         {
+            life = hearts.Length;
             //trial death
             if (input.die)
             {
@@ -386,17 +410,28 @@ namespace VGP142.PlayerInputs
 
             if (currentHealth <= 0)
             {
-                animator.SetTrigger("Die");
                 isDying = true;
+                
+                Destroy(hearts[0].gameObject);
+                animator.SetTrigger("Die");
             }
+            if (life < 1)
+            {
+                SceneManager.LoadScene("GameOverScene");
+            }
+
             if (isDying)
             {
+               
+
                 deathTimer += Time.deltaTime;
                 if (deathTimer >= waitingTime)
                 {
-                    
-                    //Destroy(gameObject);
-                    SceneManager.LoadScene("GameOverScene");
+                    isDying = false;
+                    maxHealth = 100;
+                    currentHealth = maxHealth;
+                    transform.position = gameManager.lastCheckPoint;
+                    animator.SetFloat(animIDSpeed, animationBlend);
                 }
             }
         }
@@ -415,7 +450,57 @@ namespace VGP142.PlayerInputs
         {
             messagePanel.SetActive(false);
         }
-        
+
+        public void OnGamePanel()
+        {
+            if (input.pause)
+            {
+                if (togglePanel)
+                {
+                    //Debug.Log("Paused");
+                    InGamePanel.gameObject.SetActive(false);
+                    togglePanel = false;
+                    Time.timeScale = 1.0f;
+                }
+                else
+                {
+                    if (!isAttacking && Grounded)
+                    {
+                        //Debug.Log("Paused");
+                        InGamePanel.gameObject.SetActive(true);
+                        togglePanel = true;
+                        Time.timeScale = 0.0f;
+                    }
+                }
+            }
+            input.pause = false;
+
+
+            if (input.resume)
+            {
+                InGamePanel.gameObject.SetActive(false);
+                Time.timeScale = 1.0f;
+            }
+            input.resume = false;
+
+            if (input.save)
+            {
+                //Debug.Log("Save");
+                GM.SaveGame();
+            }
+            input.save = false;
+
+            if (input.load)
+            {
+                //Debug.Log("Load");
+                GM.LoadGame();
+                InGamePanel.gameObject.SetActive(false);
+                Time.timeScale = 1.0f;
+            }
+            input.load = false;
+        }
+            
+
         //animation pickup
         private void StartPicking()
         {

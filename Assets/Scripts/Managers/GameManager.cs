@@ -5,27 +5,24 @@ using UnityEngine.Events;
 
 namespace VGP142.PlayerInputs
 {
-    public class GameManager : Singleton<GameManager>
+    public class GameManager : MonoBehaviour
     {
         static GameManager _instances = null;
+        public Vector3 lastCheckPoint;
 
         [HideInInspector] public GameObject playerInstances;
         [HideInInspector] public UnityEvent<int> onLifeEvent;
         [HideInInspector] public UnityEvent<int> onScoreEvent;
         public static GameManager instances
         {
-            get
-            {
-                return _instances;
-            }
-            set
-            {
-                _instances = value;
-            }
+            get { return _instances;  }
+            set { _instances = value; }
         }
 
+        #region Game States
+
         int _score = 0;
-        int _lives = 1;
+        //int _lives = 1;
         public int maxlives = 3;
         public GameObject playerPrefabs;
 
@@ -39,27 +36,29 @@ namespace VGP142.PlayerInputs
                 Debug.Log("Score set to:" + score.ToString());
             }
         }
-        public int lives
-        {
-            get { return _lives; }
-            set
-            {
-                if (_lives > value)
-                {
-                    Destroy(playerInstances);
-                    //spawnPlayer(currentLevel.spawnPoint);
-                }
 
-                _lives = value;
-                if (_lives > maxlives)
-                {
-                    _lives = maxlives;
-                    onLifeEvent.Invoke(value);
-                }
-                Debug.Log("Lives set to:" + lives.ToString());
-            }
+        //public int lives
+        //{
+        //    get { return _lives; }
+        //    set
+        //    {
+        //        if (_lives > value)
+        //        {
+        //            Destroy(playerInstances);
+        //            //spawnPlayer(currentLevel.spawnPoint);
+        //        }
 
-        }
+        //        _lives = value;
+        //        if (_lives > maxlives)
+        //        {
+        //            _lives = maxlives;
+        //            onLifeEvent.Invoke(value);
+        //        }
+        //        Debug.Log("Lives set to:" + lives.ToString());
+        //    }
+        //}
+
+        #endregion
 
         void Start()
         {
@@ -72,11 +71,6 @@ namespace VGP142.PlayerInputs
                 instances = this;
                 DontDestroyOnLoad(gameObject);
             }
-        }
-
-        public void spawnPlayer(Transform spawnLocation)
-        {
-            playerInstances = Instantiate(playerPrefabs, spawnLocation.position, spawnLocation.rotation);
         }
     }
 }

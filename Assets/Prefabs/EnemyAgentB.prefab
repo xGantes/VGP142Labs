@@ -2354,7 +2354,6 @@ MonoBehaviour:
   dontReturn: 0
   eye: {fileID: 6078199453203555330}
   visionPrefab: {fileID: 6058987190590874651, guid: c2dd9468b3ed19848b24edab002f137c, type: 3}
-  deathFxPrefab: {fileID: 0}
 --- !u!114 &6078199453295326227
 MonoBehaviour:
   m_ObjectHideFlags: 0
