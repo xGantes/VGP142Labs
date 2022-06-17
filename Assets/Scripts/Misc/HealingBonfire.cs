@@ -8,6 +8,7 @@ namespace VGP142.PlayerInputs
     {
         private GameManager gameManager;
         public Transform spawnPoint;
+        public GameObject healingEffect;
 
         public Player playerHealth;
         public float healthInterval = 4f;
@@ -21,6 +22,7 @@ namespace VGP142.PlayerInputs
         }
         void FixedUpdate()
         {
+
             healthIntervalLeft -= Time.fixedDeltaTime;
             if (healthIntervalLeft <= 0f)
             {
@@ -37,8 +39,23 @@ namespace VGP142.PlayerInputs
         {
             if (isHealing)
             {
-                playerHealth.currentHealth += healthGain;
+                if (playerHealth.currentHealth != 100)
+                {
+                    playerHealth.currentHealth += healthGain;
+                    healingEffect.SetActive(true);
+                    //SoundManager.PlaySound("healing");
+                }
+                else
+                {
+                    isHealing = false;
+                    healingEffect.SetActive(false);
+                }
             }
+        }
+        private void OnTriggerExit(Collider other)
+        {
+            isHealing = false;
+            healingEffect.SetActive(false);
         }
 
         private void OnTriggerEnter(Collider other)

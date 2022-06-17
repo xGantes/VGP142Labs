@@ -121,6 +121,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "SpawnEnemy",
+                    "type": "Button",
+                    "id": "43a72ab7-4bcc-417e-8a63-a620d8132d8d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -407,6 +416,17 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "Quit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "308d5468-481e-427b-83bf-9b88ffbf021f",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "SpawnEnemy",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

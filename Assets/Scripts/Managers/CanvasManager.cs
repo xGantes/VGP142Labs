@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 namespace VGP142.PlayerInputs
 {
@@ -14,12 +15,10 @@ namespace VGP142.PlayerInputs
 
         [Header("Buttons")]
         public Button startButton;
-        public Button exitButton;
-        public Button settingButton;
         public Button returnButton;
-        public Button returnToGame;
-        public Button returnToMenu;
         public Button tryAgainButton;
+        public Button settingButton;
+        public Button returnToGame;
 
         [Header("Menus")]
         public GameObject mainMenu;
@@ -36,9 +35,15 @@ namespace VGP142.PlayerInputs
         private bool togglePanel;
         //public GameManager playerHealth;
 
+        [Header("Volume")]
+        public Slider volSlider;
+        public AudioMixer mixer;
+        private float value;
+
         private void Awake()
         {
             input = GetComponent<MainPlayerInputs>();
+
         }
 
         void Start()
@@ -63,11 +68,9 @@ namespace VGP142.PlayerInputs
             {
                 returnToGame.onClick.AddListener(() => resumeGame());
             }
-            //if (volSlide && sliderText)
-            //{
-            //    volSlide.onValueChanged.AddListener((value) => OnSliderValueChange(value));
-            //    sliderText.text = volSlide.value.ToString();
-            //}
+
+            mixer.GetFloat("volume", out value);
+            volSlider.value = value;
         }
 
         public void showMainMenu()
@@ -94,31 +97,16 @@ namespace VGP142.PlayerInputs
             sliderText.text = value.ToString();
         }
 
-            //resumeMenu.SetActive(true);
-            //if (resumeMenu)
-            //{
-            //    if (input.pause)
-            //    {
-            //        Debug.Log("Pause");
-            //        resumeMenu.gameObject.SetActive(true);
-
-            //        resumeMenu.SetActive(!resumeMenu.activeSelf);
-            //        if (resumeMenu.activeSelf)
-            //        {
-            //            resumeMenu.SetActive(true);
-            //            Time.timeScale = 0f;
-            //        }
-            //        else
-            //        {
-            //            Time.timeScale = 1f;
-            //        }
-            //    }
-            //}
-
-        private void resumeGame()
+        public void resumeGame()
         {
-            resumeMenu.gameObject.SetActive(false);
-            //Time.timeScale = 1.0f;
+            //Debug.Log("resume");
+            resumeMenu.SetActive(false);
+            Time.timeScale = 1.0f;
+        }
+
+        public void SetVolume()
+        {
+            mixer.SetFloat("volume", volSlider.value);
         }
     }
 }

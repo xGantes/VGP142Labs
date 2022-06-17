@@ -143,6 +143,15 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SpawnEnemy"",
+                    ""type"": ""Button"",
+                    ""id"": ""43a72ab7-4bcc-417e-8a63-a620d8132d8d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -431,6 +440,17 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                     ""action"": ""Quit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""308d5468-481e-427b-83bf-9b88ffbf021f"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""SpawnEnemy"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -500,6 +520,7 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         m_Player_Save = m_Player.FindAction("Save", throwIfNotFound: true);
         m_Player_Load = m_Player.FindAction("Load", throwIfNotFound: true);
         m_Player_Quit = m_Player.FindAction("Quit", throwIfNotFound: true);
+        m_Player_SpawnEnemy = m_Player.FindAction("SpawnEnemy", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -572,6 +593,7 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Save;
     private readonly InputAction m_Player_Load;
     private readonly InputAction m_Player_Quit;
+    private readonly InputAction m_Player_SpawnEnemy;
     public struct PlayerActions
     {
         private @MainPlayer m_Wrapper;
@@ -589,6 +611,7 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         public InputAction @Save => m_Wrapper.m_Player_Save;
         public InputAction @Load => m_Wrapper.m_Player_Load;
         public InputAction @Quit => m_Wrapper.m_Player_Quit;
+        public InputAction @SpawnEnemy => m_Wrapper.m_Player_SpawnEnemy;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -637,6 +660,9 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                 @Quit.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnQuit;
                 @Quit.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnQuit;
                 @Quit.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnQuit;
+                @SpawnEnemy.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSpawnEnemy;
+                @SpawnEnemy.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSpawnEnemy;
+                @SpawnEnemy.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSpawnEnemy;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -680,6 +706,9 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
                 @Quit.started += instance.OnQuit;
                 @Quit.performed += instance.OnQuit;
                 @Quit.canceled += instance.OnQuit;
+                @SpawnEnemy.started += instance.OnSpawnEnemy;
+                @SpawnEnemy.performed += instance.OnSpawnEnemy;
+                @SpawnEnemy.canceled += instance.OnSpawnEnemy;
             }
         }
     }
@@ -735,5 +764,6 @@ public partial class @MainPlayer : IInputActionCollection2, IDisposable
         void OnSave(InputAction.CallbackContext context);
         void OnLoad(InputAction.CallbackContext context);
         void OnQuit(InputAction.CallbackContext context);
+        void OnSpawnEnemy(InputAction.CallbackContext context);
     }
 }

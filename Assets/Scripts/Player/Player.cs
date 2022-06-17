@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Collections;
 
 namespace VGP142.PlayerInputs
 {
@@ -61,13 +62,31 @@ namespace VGP142.PlayerInputs
         public float playerPosX, playerPosY, playerPosZ;
         //checkpoint
 
-        [Header("Active Weapon")]
+        [Header("Weapon Panel")]
         public GameObject weaponHolder;
+        private bool isPickingUp;
         //public GameObject weapon;
         //public Transform weaponParent;
+        [Space(10)]
 
-        private bool isAttacking;
-        private bool isPickingUp;
+        [Header("Attack Panel")]
+        [SerializeField] public bool isAttacking;
+        public Transform rightHandPoint;
+        public Transform leftFootPoint;
+        public LayerMask enemyLayers;
+        public int rightHandDamage = 20;
+        public int leftFootDamage = 40;
+        public float attackRange;
+        public float attackRate = 2f;
+        float nextAttackTime = 0f;
+        [Space(10)]
+
+        [Header("Spawn Enemy Trial")]
+        public GameObject enemyPrefabs;
+        public int xPosition;
+        public int zPosition;
+        public int enemyCount;
+        public bool isSpawning;
 
         // cinemachine
         private float cinemachineTargetYaw;
@@ -99,6 +118,7 @@ namespace VGP142.PlayerInputs
         private GameObject mainCamera;
         private GameStateManager GM;
         private GameManager gameManager;
+        private SpawnEnemyTrial spawnEnem;
 
         private const float threshold = 0.01f;
         private bool hasAnimator;
@@ -164,6 +184,9 @@ namespace VGP142.PlayerInputs
             Die();
             OnInteract();
             OnGamePanel();
+
+            //spawn enemy trial
+            //OnSpawnEnemy();
         }
 
         private void LateUpdate()
@@ -345,6 +368,7 @@ namespace VGP142.PlayerInputs
 
                 // if we are not grounded, do not jump
                 input.jump = false;
+                input.attack = false;
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -366,20 +390,58 @@ namespace VGP142.PlayerInputs
         {
             isAttacking = false;
         }
+        private void PunchSoundEffect()
+        {
+            //SoundManager.PlaySound("punch");
+            SoundManager.instance.Play("Punch");
+        }
+        private void KickSoundEffect()
+        {
+            //SoundManager.PlaySound("kick");
+            SoundManager.instance.Play("Kick");
+        }
 
         private void Attack()
         {
             if (Grounded)
             {
-                if (input.attack)
+                if (Time.time >= nextAttackTime)
                 {
-                    if (!isAttacking && !isDying)
+                    if (input.attack)
                     {
-                        StartAttacking();
-                        animator.SetTrigger("Attacks");
+                        OnAttack();
+                        input.jump = false;
                     }
+                    input.attack = false;
                 }
-                input.attack = false;
+            }
+            else
+            {
+                StopAttacking();
+            }
+        }
+
+        private void OnAttack()
+        {
+            if (!isAttacking && !isDying)
+            {
+                StartAttacking();
+                animator.SetTrigger("Attacks");
+
+                Collider[] enemyHit = Physics.OverlapSphere(rightHandPoint.position, attackRange, enemyLayers);
+                Collider[] enemyHit2 = Physics.OverlapSphere(leftFootPoint.position, attackRange, enemyLayers);
+
+                foreach (Collider enemy in enemyHit)
+                {
+                    Debug.Log("left hand hit" + rightHandDamage);
+                    enemy.GetComponent<Enemy>().OnTakeDamage(rightHandDamage);
+                }
+
+                foreach (Collider enemy2 in enemyHit2)
+                {
+                    Debug.Log("right foot hit" + leftFootDamage);
+                    enemy2.GetComponent<Enemy>().OnTakeDamage(leftFootDamage);
+                }
             }
         }
 
@@ -544,13 +606,44 @@ namespace VGP142.PlayerInputs
 
         #endregion
 
+        #region Spawn Enemy
 
-        private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+        public void OnSpawnEnemy()
         {
-            if (lfAngle < -360f) lfAngle += 360f;
-            if (lfAngle > 360f) lfAngle -= 360f;
-            return Mathf.Clamp(lfAngle, lfMin, lfMax);
+            if (input.spawnEnem)
+            {
+                Debug.Log("Spawn Enemy");
+
+                if (!isSpawning)
+                {
+                    if (enemyCount >= 20)
+                    {
+                        StopCoroutine(EnemyDrop());
+                    }
+                    else
+                    {
+                        StartCoroutine(EnemyDrop());
+                    }
+                    
+                }
+            }
+            input.spawnEnem = false;
         }
+
+        IEnumerator EnemyDrop()
+        {
+            isSpawning = true;
+            xPosition = Random.Range(35, 50);
+            zPosition = Random.Range(0, 9);
+            Instantiate(enemyPrefabs, new Vector3(xPosition, 2, zPosition), Quaternion.identity);
+            yield return new WaitForSeconds(0.1f);
+            isSpawning = false;
+            enemyCount += 1;
+        }
+
+        #endregion
+
+        #region Gizmos
 
         private void OnDrawGizmosSelected()
         {
@@ -559,11 +652,22 @@ namespace VGP142.PlayerInputs
 
             if (Grounded) Gizmos.color = transparentGreen;
             else Gizmos.color = transparentRed;
+            Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),GroundedRadius);
 
-            // when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
-            Gizmos.DrawSphere(
-                new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),
-                GroundedRadius);
+            if (rightHandPoint == null) return;
+            Gizmos.DrawWireSphere(rightHandPoint.position, attackRange);
+
+            if (leftFootPoint == null) return;
+            Gizmos.DrawWireSphere(leftFootPoint.position, attackRange);
+        }
+
+        #endregion
+
+        private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+        {
+            if (lfAngle < -360f) lfAngle += 360f;
+            if (lfAngle > 360f) lfAngle -= 360f;
+            return Mathf.Clamp(lfAngle, lfMin, lfMax);
         }
 
         private void OnFootstep(AnimationEvent animationEvent)
